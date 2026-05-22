@@ -1,0 +1,5 @@
+anthropic
+pdfplumber
+python-dotenv
+icalendar
+streamlit
