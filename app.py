@@ -10,7 +10,8 @@ import tempfile
 
 # Load API key
 load_dotenv()
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY")
+client = anthropic.Anthropic(api_key=api_key)
 
 st.title("Syllabus Scraper")
 st.write("Upload your syllabus PDF and we'll extract all your deadlines into a calendar file!")
