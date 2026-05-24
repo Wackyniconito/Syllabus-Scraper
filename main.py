@@ -44,7 +44,7 @@ message = client.messages.create(
             "role": "user",
             "content": f"""Extract all deadlines from this syllabus and return them as a JSON array.
 Each item should have 'name' and 'date' fields.
-Date format should be YYYY-MM-DD.
+Date format should be MM DD, YY.
 Return only the JSON array, nothing else.
 
 {syllabus_text}"""
@@ -71,8 +71,8 @@ cal.add('version', '2.0')
 for deadline in deadlines:
     event = Event()
     event.add('summary', deadline['name'])
-    event.add('dtstart', datetime.strptime(deadline['date'], '%Y-%m-%d').date())
-    event.add('dtend', datetime.strptime(deadline['date'], '%Y-%m-%d').date())
+    event.add('dtstart', datetime.strptime(deadline['date'], '%B %d, %Y').date())
+    event.add('dtend', datetime.strptime(deadline['date'], '%B %d, %Y').date())
     cal.add_component(event)
 
 # Save the .ics file

@@ -15,12 +15,21 @@ client = anthropic.Anthropic(api_key=api_key)
 
 st.title("Syllabus Scraper")
 st.write("Upload your syllabus PDF and we'll extract all your deadlines into a calendar file!")
+ 
+# Pick Calendar
+st.write("Pick your calendar!")
 
-uploaded_file = st.file_uploader("Upload your syllabus PDF", type="pdf")
+st.button("Google Calendar", key="Google")
+st.session_state['calendar_choice'] = "Google"
 
+if 'calendar_choice' not in st.session_state:
+    st.session_state['calendar_choice'] = None
+
+
+# File Upload
 if uploaded_file is not None:
     if st.button("Extract Deadlines"):
-        with st.spinner("Reading your syllabus..."):
+        with st.spinner("Reading syllabus..."):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
                 tmp.write(uploaded_file.read())
                 tmp_path = tmp.name
@@ -30,7 +39,7 @@ if uploaded_file is not None:
                 for page in pdf.pages:
                     syllabus_text += page.extract_text()
 
-        with st.spinner("Extracting deadlines with AI..."):
+        with st.spinner("Making life easier with Artificial Intelligence..."):
             message = client.messages.create(
                 model="claude-sonnet-4-6",
                 max_tokens=1024,
@@ -39,7 +48,7 @@ if uploaded_file is not None:
                         "role": "user",
                         "content": f"""Extract all deadlines from this syllabus and return them as a JSON array.
 Each item should have 'name' and 'date' fields.
-Date format should be YYYY-MM-DD.
+Date format should be Month Day, Year.
 Return only the JSON array, nothing else.
 
 {syllabus_text}"""
@@ -58,9 +67,9 @@ Return only the JSON array, nothing else.
         st.subheader("Your Deadlines:")
 
         for deadline in deadlines:
-            date_obj = datetime.strptime(deadline['date'], '%Y-%m-%d')
-            google_date = date_obj.strftime('%Y%m%d')
-            next_day = (date_obj + timedelta(days=1)).strftime('%Y%m%d')
+            date_obj = datetime.strptime(deadline['date'], '%B %d, %Y')
+            google_date = date_obj.strftime('%B %d, %Y')
+            next_day = (date_obj + timedelta(days=1)).strftime('%B %d, %Y')
             
             google_link = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={deadline['name'].replace(' ', '+')}&dates={google_date}/{next_day}"
             
@@ -78,14 +87,14 @@ Return only the JSON array, nothing else.
         for deadline in deadlines:
             event = Event()
             event.add('summary', deadline['name'])
-            event.add('dtstart', datetime.strptime(deadline['date'], '%Y-%m-%d').date())
-            event.add('dtend', datetime.strptime(deadline['date'], '%Y-%m-%d').date())
+            event.add('dtstart', datetime.strptime(deadline['date'], '%B %d, %Y').date())
+            event.add('dtend', datetime.strptime(deadline['date'], '%B %d, %Y').date())
             cal.add_component(event)
 
         # Download button
         st.divider()
         st.subheader("Add All Deadlines to Your Calendar")
-        st.write("Click the button below to download all your deadlines at once. Then just double click the downloaded file and your calendar app will import everything automatically!")
+        st.write("Click the button below to download all your deadlines at once. Then just double click the downloaded file and your default calendar app will import everything automatically!")
 
         st.download_button(
             label="⬇️ Add ALL Deadlines to Calendar at Once",
@@ -94,10 +103,10 @@ Return only the JSON array, nothing else.
             mime="text/calendar"
         )
 
-        st.info("After downloading, click below to open Google Calendar & import your file!")
-        st.link_button("Open Google Calendar", "https:'//calendar.google.com")
-
         st.caption("✅ Works with Outlook, Google Calendar, and Apple Calendar")
+
+        st.info("After downloading, click below to open Google Calendar & import your file!")
+    
 
             # Cleanup temp file
         os.unlink(tmp_path)
