@@ -7,7 +7,6 @@ import json
 import pdfplumber
 import tempfile
 from datetime import datetime, timedelta
-
 # Load API key
 load_dotenv()
 api_key = os.getenv("ANTHROPIC_API_KEY") or st.secrets.get("ANTHROPIC_API_KEY")
@@ -19,12 +18,13 @@ st.write("Upload your syllabus PDF and we'll extract all your deadlines into a c
 # Pick Calendar
 st.write("Pick your calendar!")
 
-st.button("Google Calendar", key="Google")
-st.session_state['calendar_choice'] = "Google"
-
 if 'calendar_choice' not in st.session_state:
     st.session_state['calendar_choice'] = None
 
+st.button("Google Calendar", key="Google")
+st.session_state['calendar_choice'] = "Google"
+
+uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
 # File Upload
 if uploaded_file is not None:
@@ -68,8 +68,8 @@ Return only the JSON array, nothing else.
 
         for deadline in deadlines:
             date_obj = datetime.strptime(deadline['date'], '%B %d, %Y')
-            google_date = date_obj.strftime('%B %d, %Y')
-            next_day = (date_obj + timedelta(days=1)).strftime('%B %d, %Y')
+            google_date = date_obj.strftime('%Y%m%d')
+            next_day = (date_obj + timedelta(days=1)).strftime('%Y%m%d')
             
             google_link = f"https://calendar.google.com/calendar/render?action=TEMPLATE&text={deadline['name'].replace(' ', '+')}&dates={google_date}/{next_day}"
             
@@ -105,7 +105,7 @@ Return only the JSON array, nothing else.
 
         st.caption("✅ Works with Outlook, Google Calendar, and Apple Calendar")
 
-        st.info("After downloading, click below to open Google Calendar & import your file!")
+        st.info("After downloading, double click the .ics file and it will open in your default calendar app with all the deadlines ready to be added!")
     
 
             # Cleanup temp file
